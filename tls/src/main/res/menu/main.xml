@@ -1,0 +1,14 @@
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity" >
+    <item android:id="@+id/start_action"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/start_text" />
+    <item android:id="@+id/cancel_action"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/cancel_text" />
+    <item android:id="@+id/action_settings"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/action_settings" />
+</menu>
