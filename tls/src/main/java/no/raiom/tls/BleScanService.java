@@ -12,11 +12,6 @@ import android.util.Log;
 public class BleScanService extends Service {
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-    }
-
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         scanLeDevice(intent.getBooleanExtra("start_scanning", false));
         TempLogWakeToScanReceiver.completeWakefulIntent(intent);
