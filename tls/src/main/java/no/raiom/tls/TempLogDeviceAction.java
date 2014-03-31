@@ -1,11 +1,13 @@
 package no.raiom.tls;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
+import android.content.Context;
 import android.util.Log;
 
 import java.util.List;
@@ -14,15 +16,19 @@ import java.util.UUID;
 public class TempLogDeviceAction {
     public final static UUID TEMP_LOG = UUID.fromString("000018fb-0000-1000-8000-00805f9b34fb");
 
-    public TempLogDeviceAction() {
+    public void connect(Context context, BluetoothDevice device) {
+        device.connectGatt(context, false, leGattCallback);
     }
 
-    public final BluetoothGattCallback leGattCallback = new BluetoothGattCallback() {
+    private final BluetoothGattCallback leGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
+                Log.i("Fisken", "Connected " + gatt);
                 gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                Log.i("Fisken", "Disconnected " + gatt);
+                gatt.close();
             }
         }
 
@@ -47,10 +53,8 @@ public class TempLogDeviceAction {
         }
 
         @Override
-        public void onCharacteristicRead(BluetoothGatt gatt,
-                                         BluetoothGattCharacteristic characteristic,
-                                         int status) {
-            Log.i("Fisken", "onCharacteristicRead");
+        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            Log.i("Fisken", "onDescriptorWrite");
         }
 
         @Override
@@ -63,6 +67,7 @@ public class TempLogDeviceAction {
                 List<TempLogSample> samples = TempLogSample.decode_samples(characteristic.getValue());
                 for (TempLogSample s : samples) {
                     Log.i("Fisken", "Sample: " + s);
+                    break;
                 }
             }
         }

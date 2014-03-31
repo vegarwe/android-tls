@@ -10,11 +10,10 @@ import android.os.IBinder;
 import android.util.Log;
 
 public class BleScanService extends Service {
-    private TempLogDeviceAction mDeviceAction;
+
     @Override
     public void onCreate() {
         super.onCreate();
-
     }
 
     @Override
@@ -47,12 +46,7 @@ public class BleScanService extends Service {
     }
 
     private void connect(BluetoothDevice device) {
-        if (mDeviceAction == null) {
-            mDeviceAction = new TempLogDeviceAction();
-        }
-
-        //mDeviceAction.connect(this, device);
-        device.connectGatt(this, false, mDeviceAction.leGattCallback);
+        new TempLogDeviceAction().connect(this, device);
     }
 
     private BluetoothAdapter.LeScanCallback leScanCallback =
@@ -60,7 +54,7 @@ public class BleScanService extends Service {
             
                 @Override
                 public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    //Log.e("Fisken", "Found device: " + device.getName() + " " + device.getAddress());
+                    Log.i("Fisken", "Found device: " + device.getName() + " " + device.getAddress());
                     if (device.getName().equals("TLS_480204226")) {
                         if (!found_device) {
                             found_device = true;
