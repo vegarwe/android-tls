@@ -15,7 +15,7 @@ public class TempLogWakeToScanReceiver extends WakefulBroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.e("Fisken", "TempLogWakeToScanReceiver.onReceive; " + start_scanning);
+        Log.i("Fisken", "TempLogWakeToScanReceiver.onReceive; " + start_scanning);
 
         if (start_scanning) {
             _setAlarm(context, 1000 *  3);
@@ -31,7 +31,7 @@ public class TempLogWakeToScanReceiver extends WakefulBroadcastReceiver {
     }
 
     public void setAlarm(Context context) {
-        Log.e("Fisken", "TempLogWakeToScanReceiver.setAlarm");
+        Log.i("Fisken", "TempLogWakeToScanReceiver.setAlarm");
 
         _setAlarm(context, 0);
 

@@ -18,10 +18,10 @@ public class TempLogSample {
     }
 
     static List<TempLogSample> decode_samples(byte[] data) {
+        List<TempLogSample> samples = new ArrayList<TempLogSample>();
         byte flags      =         data[0];
         int  num_logs   = (int)   data[1] & 0xff;
         int  sample_num = (int) ((data[2] & 0xff) + ((data[3] & 0xff) << 8));
-        List<TempLogSample> samples = new ArrayList<TempLogSample>();
         for (int i = 0; i < num_logs; i++) {
             int sample  = (int) ((data[4+(2*i)] & 0xff) + ((data[5+(2*i)] & 0xff) << 8));
             samples.add(new TempLogSample(sample_num + i, sample * 0.0625));

@@ -46,7 +46,7 @@ public class BleScanService extends Service {
 
     private BluetoothAdapter.LeScanCallback leScanCallback =
             new BluetoothAdapter.LeScanCallback() {
-            
+
                 @Override
                 public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
                     Log.i("Fisken", "Found device: " + device.getName() + " " + device.getAddress());
