@@ -2,6 +2,7 @@ package no.raiom.tls;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
@@ -9,22 +10,11 @@ import android.os.IBinder;
 import android.util.Log;
 
 public class BleScanService extends Service {
-    public static final String TAG = BleScanService.class.getSimpleName();
-
-    private BluetoothAdapter mBluetoothAdapter;
-    private TempLogDeviceAction mDeviceAction = new TempLogDeviceAction(this);
-
-    public BleScanService() {
-        super();
-    }
-
+    private TempLogDeviceAction mDeviceAction;
     @Override
     public void onCreate() {
         super.onCreate();
 
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
     }
 
     @Override
@@ -40,13 +30,43 @@ public class BleScanService extends Service {
         return null;
     }
 
+    private boolean found_device;
+
     private void scanLeDevice(final boolean enable) {
+        final BluetoothAdapter mBluetoothAdapter =
+                ((BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
+
         if (enable) {
-            mBluetoothAdapter.startLeScan(mDeviceAction.leScanCallback);
+            found_device = false;
+            mBluetoothAdapter.startLeScan(leScanCallback);
             Log.i("Fisken", "BleScanService.startLeScan");
         } else {
             Log.i("Fisken", "BleScanService.stopLeScan");
-            mBluetoothAdapter.stopLeScan(mDeviceAction.leScanCallback);
+            mBluetoothAdapter.stopLeScan(leScanCallback);
         }
     }
+
+    private void connect(BluetoothDevice device) {
+        if (mDeviceAction == null) {
+            mDeviceAction = new TempLogDeviceAction();
+        }
+
+        //mDeviceAction.connect(this, device);
+        device.connectGatt(this, false, mDeviceAction.leGattCallback);
+    }
+
+    private BluetoothAdapter.LeScanCallback leScanCallback =
+            new BluetoothAdapter.LeScanCallback() {
+            
+                @Override
+                public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+                    //Log.e("Fisken", "Found device: " + device.getName() + " " + device.getAddress());
+                    if (device.getName().equals("TLS_480204226")) {
+                        if (!found_device) {
+                            found_device = true;
+                            connect(device);
+                        }
+                    }
+                }
+            };
 }
