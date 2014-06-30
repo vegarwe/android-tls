@@ -23,6 +23,14 @@ public class TempLogDeviceAction {
     private final BluetoothGattCallback leGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                Log.w("Fisken", "Wrong status, disconnect and close");
+                gatt.disconnect();
+                gatt.close();
+                super.onConnectionStateChange(gatt, status, newState);
+                return;
+            }
+
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.i("Fisken", "Connected " + gatt);
                 gatt.discoverServices();
