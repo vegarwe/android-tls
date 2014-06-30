@@ -7,8 +7,8 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="C:\Users\vegarwe\Dropbox\vegarwe\devel\AndroidStudioProjects\TempLogger" />
-            <option value="C:\Users\vegarwe\Dropbox\vegarwe\devel\AndroidStudioProjects\TempLogger\tls" />
+            <option value="C:\Users\vegarwe\Dropbox\vegarwe\devel\android-tls" />
+            <option value="C:\Users\vegarwe\Dropbox\vegarwe\devel\android-tls\tls" />
           </set>
         </option>
       </GradleProjectSettings>
