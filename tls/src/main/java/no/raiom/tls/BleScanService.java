@@ -50,7 +50,7 @@ public class BleScanService extends Service {
                 @Override
                 public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
                     Log.i("Fisken", "Found device: " + device.getName() + " " + device.getAddress());
-                    if (device.getName().equals("TLS_480204226")) {
+                    if (device.getName().equals("TLS_480206234")) {
                         if (!found_device) {
                             found_device = true;
                             connect(device);
