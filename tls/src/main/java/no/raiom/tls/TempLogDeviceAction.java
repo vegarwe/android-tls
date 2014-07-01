@@ -33,13 +33,20 @@ public class TempLogDeviceAction {
         device.connectGatt(context, false, leGattCallback);
     }
 
-    private final BluetoothGattCallback leGattCallback = new BluetoothGattCallback() {
+    private class TlsServiceHandles {
+        BluetoothGattCharacteristic value_chr  = null;
+        BluetoothGattDescriptor     value_dscr = null;
+        BluetoothGattCharacteristic desc1_chr  = null;
+        BluetoothGattCharacteristic desc2_chr  = null;
+        TempLog                     tempLog    = null;
 
-        BluetoothGattCharacteristic value_chr = null;
-        BluetoothGattCharacteristic desc1_chr = null;
-        BluetoothGattCharacteristic desc2_chr = null;
-        BluetoothGattDescriptor    value_dscr = null;
-        TempLog                           tls = null;
+        public boolean has_all_handles() {
+            return value_chr != null && value_dscr != null && desc1_chr != null && desc2_chr != null;
+        }
+    }
+
+    private final BluetoothGattCallback leGattCallback = new BluetoothGattCallback() {
+        TlsServiceHandles                 tls = null;
 
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -53,6 +60,7 @@ public class TempLogDeviceAction {
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.i("Fisken", "Connected " + gatt);
+                tls = new TlsServiceHandles();
                 gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i("Fisken", "Disconnected " + gatt);
@@ -71,20 +79,20 @@ public class TempLogDeviceAction {
                 for (BluetoothGattCharacteristic chr : srv.getCharacteristics()) {
                     Log.i("Fisken", "UUID: " + chr.getUuid());
                     if (TLS_VALUE.equals(chr.getUuid())) {
-                        value_chr = chr;
+                        tls.value_chr = chr;
                         for (BluetoothGattDescriptor dscr : chr.getDescriptors()) {
-                            value_dscr = dscr;
+                            tls.value_dscr = dscr;
                         }
                     } else if (TLS_DESC1.equals(chr.getUuid())) {
-                        desc1_chr = chr;
+                        tls.desc1_chr = chr;
                     } else if (TLS_DESC2.equals(chr.getUuid())) {
-                        desc2_chr = chr;
+                        tls.desc2_chr = chr;
                     }
                 }
             }
 
-            if (value_dscr != null && desc1_chr != null && desc2_chr != null) {
-                gatt.readCharacteristic(desc1_chr);
+            if (tls.has_all_handles()) {
+                gatt.readCharacteristic(tls.desc1_chr);
             }
         }
 
@@ -99,13 +107,13 @@ public class TempLogDeviceAction {
 
             Log.d("Fisken", "Read " + chr + " UUID " + chr.getUuid() + " value: " + bytesToHex(chr.getValue()));
             if (TLS_DESC1.equals(chr.getUuid())) {
-                gatt.readCharacteristic(desc2_chr);
+                gatt.readCharacteristic(tls.desc2_chr);
             } else if (TLS_DESC2.equals(chr.getUuid())) {
                 long now = System.currentTimeMillis();
-                tls = TempLog.from_byte_data(now, desc1_chr.getValue(), desc2_chr.getValue());
-                gatt.setCharacteristicNotification(value_chr, true);
-                value_dscr.setValue(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE);
-                gatt.writeDescriptor(value_dscr);
+                tls.tempLog = TempLog.from_byte_data(now, tls.desc1_chr.getValue(), tls.desc2_chr.getValue());
+                gatt.setCharacteristicNotification(tls.value_chr, true);
+                tls.value_dscr.setValue(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE);
+                gatt.writeDescriptor(tls.value_dscr);
             }
         }
 
@@ -114,11 +122,11 @@ public class TempLogDeviceAction {
                                             BluetoothGattCharacteristic characteristic) {
             if (TLS_VALUE.equals(characteristic.getUuid())) {
 
-                List<TempLog.TempLogSample> samples = tls.decode_samples(characteristic.getValue());
+                List<TempLog.TempLogSample> samples = tls.tempLog.decode_samples(characteristic.getValue());
                 for (TempLog.TempLogSample s : samples) {
                     StringBuilder sl = new StringBuilder();
                     sl.append(" rand: ");
-                    sl.append(bytesToHex(tls.random));
+                    sl.append(bytesToHex(tls.tempLog.random));
                     sl.append(" sample: ");
                     sl.append(s);
                     Log.i("Fisken", sl.toString());
