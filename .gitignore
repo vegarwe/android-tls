@@ -1,4 +1,16 @@
-.gradle
-/local.properties
-/.idea/workspace.xml
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Windows thumbnail db
+Thumbs.db
+
+# OSX
 .DS_Store
+
+# Eclipse project files
+.classpath
+.project
+
+# Android studio
+.gradle
+/.idea
