@@ -9,10 +9,22 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class BleScanService extends Service {
+    Map<String, Boolean> addrs;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        addrs = new HashMap<String, Boolean>();
+        if (intent.hasExtra("device_addrs")) {
+            for (String device_addr : intent.getStringArrayListExtra("device_addrs")) {
+                addrs.put(device_addr, false);
+                Log.i("Fisken", "device_addr: " + device_addr);
+            }
+        }
+
         scanLeDevice(intent.getBooleanExtra("start_scanning", false));
         TempLogWakeToScanReceiver.completeWakefulIntent(intent);
         return super.onStartCommand(intent, flags, startId);
@@ -24,14 +36,11 @@ public class BleScanService extends Service {
         return null;
     }
 
-    private boolean found_device;
-
     private void scanLeDevice(final boolean enable) {
         final BluetoothAdapter mBluetoothAdapter =
                 ((BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
 
         if (enable) {
-            found_device = false;
             mBluetoothAdapter.startLeScan(leScanCallback);
             Log.i("Fisken", "BleScanService.startLeScan");
         } else {
@@ -50,9 +59,9 @@ public class BleScanService extends Service {
                 @Override
                 public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
                     Log.i("Fisken", "Found device: " + device.getName() + " " + device.getAddress());
-                    if (device.getName().equals("TLS_480206234")) {
-                        if (!found_device) {
-                            found_device = true;
+                    if (addrs.containsKey(device.getAddress())) {
+                        if (! addrs.get(device.getAddress())) {
+                            addrs.put(device.getAddress(), true);
                             connect(device);
                         }
                     }
