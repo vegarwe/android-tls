@@ -125,6 +125,10 @@ public class TempLogProfile extends Service {
 
                 TempLogApplication app = (TempLogApplication)getApplication();
                 String filename = ByteUtils.bytesToHex(random) + ".csv";
+                String device_name = gatt.getDevice().getName();
+                if (device_name != null) {
+                    filename = device_name + "_" + filename;
+                }
                 DropboxAppender dropbox = new DropboxAppender(getApplicationContext(), app.APP_KEY, app.APP_SECRET, filename);
                 for (TempLogProfile.TempLogSample s : samples) {
                     dropbox.appendString(s.toString() + "\n");
