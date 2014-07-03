@@ -4,26 +4,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class TempLog {
+public class TempLogProfile {
     public final byte[] random;
     private final int sample_interval;
     private final int base_sample_num;
     private final long base_sample_ts;
 
-    TempLog(byte[] random, int sample_interval, int base_sample_num, long base_sample_ts) {
+    TempLogProfile(byte[] random, int sample_interval, int base_sample_num, long base_sample_ts) {
         this.random          = random;
         this.sample_interval = sample_interval;
         this.base_sample_num = base_sample_num;
         this.base_sample_ts  = base_sample_ts;
     }
 
-    static TempLog from_byte_data(long now, byte[] desc1, byte[] desc2) {
+    static TempLogProfile from_byte_data(long now, byte[] desc1, byte[] desc2) {
         byte random[] = Arrays.copyOfRange(desc1, 0, 16);
         int  sample_interval =       (desc1[16] & 0xff) + ((desc1[17] & 0xff) << 8);
         int  base_sample_num =       (desc2[ 0] & 0xff) + ((desc2[ 1] & 0xff) << 8);
         long base_sample_ts  = now - (desc2[ 2] & 0xff) + ((desc2[ 3] & 0xff) << 8);
 
-        return new TempLog(random, sample_interval, base_sample_num, base_sample_ts);
+        return new TempLogProfile(random, sample_interval, base_sample_num, base_sample_ts);
     }
 
     List<TempLogSample> decode_samples(byte[] data) {

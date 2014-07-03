@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends Activity {
-    TempLogWakeToScanReceiver alarm = new TempLogWakeToScanReceiver();
+    WakeToScanReceiver alarm = new WakeToScanReceiver();
     private Handler mHandler;
 
     private static final String KEY = "WHAT_EVER";
@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
         TempLogApplication app = (TempLogApplication)getApplication();
         mDbxAcctMgr = DbxAccountManager.getInstance(getApplicationContext(), app.APP_KEY, app.APP_SECRET);
 
-        app.deviceConfig = new DeviceConfig();
+        app.deviceConfig = new TempLogDeviceConfig();
 
         mHandler = new Handler();
 
@@ -46,8 +46,8 @@ public class MainActivity extends Activity {
 
             @Override
             public boolean onChildClick(ExpandableListView arg0, View arg1, int arg2, int arg3, long arg4) {
-                DeviceConfig deviceConfig = ((TempLogApplication) getApplication()).deviceConfig;
-                DeviceConfig.Device device = deviceConfig.get(arg2);
+                TempLogDeviceConfig deviceConfig = ((TempLogApplication) getApplication()).deviceConfig;
+                TempLogDeviceConfig.Device device = deviceConfig.get(arg2);
                 if (arg3 == 1) {
                     Toast.makeText(getBaseContext(), "Started scanning", Toast.LENGTH_LONG).show();
                     Log.i("Fisken", "Started scanning");
@@ -79,8 +79,8 @@ public class MainActivity extends Activity {
         List<Map<String, String>> groupData = new ArrayList<Map<String, String>>();
         List<List<Map<String, String>>> childData = new ArrayList<List<Map<String, String>>>();
 
-        DeviceConfig deviceConfig = ((TempLogApplication)getApplication()).deviceConfig;
-        for (DeviceConfig.Device device : deviceConfig) {
+        TempLogDeviceConfig deviceConfig = ((TempLogApplication)getApplication()).deviceConfig;
+        for (TempLogDeviceConfig.Device device : deviceConfig) {
             Map<String, String> curGroupMap = new HashMap<String, String>();
             groupData.add(curGroupMap);
             curGroupMap.put(KEY, device.name);

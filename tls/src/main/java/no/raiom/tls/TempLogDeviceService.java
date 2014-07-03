@@ -20,13 +20,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-public class TempLogDeviceAction {
+public class TempLogDeviceService {
     public final static UUID TLS_VALUE = UUID.fromString("000018fb-0000-1000-8000-00805f9b34fb");
     public final static UUID TLS_DESC1 = UUID.fromString("000018fc-0000-1000-8000-00805f9b34fb");
     public final static UUID TLS_DESC2 = UUID.fromString("000018fd-0000-1000-8000-00805f9b34fb");
     private final TempLogApplication app;
 
-    public TempLogDeviceAction(TempLogApplication app) {
+    public TempLogDeviceService(TempLogApplication app) {
         this.app = app;
     }
 
@@ -35,7 +35,7 @@ public class TempLogDeviceAction {
         BluetoothGattDescriptor     value_dscr = null;
         BluetoothGattCharacteristic desc1_chr  = null;
         BluetoothGattCharacteristic desc2_chr  = null;
-        TempLog                     tempLog    = null;
+        TempLogProfile tempLog    = null;
 
         public boolean has_all_handles() {
             return value_chr != null && value_dscr != null && desc1_chr != null && desc2_chr != null;
@@ -119,7 +119,7 @@ public class TempLogDeviceAction {
                 gatt.readCharacteristic(tls.desc2_chr);
             } else if (TLS_DESC2.equals(chr.getUuid())) {
                 long now = System.currentTimeMillis();
-                tls.tempLog = TempLog.from_byte_data(now, tls.desc1_chr.getValue(), tls.desc2_chr.getValue());
+                tls.tempLog = TempLogProfile.from_byte_data(now, tls.desc1_chr.getValue(), tls.desc2_chr.getValue());
                 gatt.setCharacteristicNotification(tls.value_chr, true);
                 tls.value_dscr.setValue(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE);
                 gatt.writeDescriptor(tls.value_dscr);
@@ -130,8 +130,8 @@ public class TempLogDeviceAction {
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
             if (TLS_VALUE.equals(characteristic.getUuid())) {
-                List<TempLog.TempLogSample> samples = tls.tempLog.decode_samples(characteristic.getValue());
-                for (TempLog.TempLogSample s : samples) {
+                List<TempLogProfile.TempLogSample> samples = tls.tempLog.decode_samples(characteristic.getValue());
+                for (TempLogProfile.TempLogSample s : samples) {
                     StringBuilder sl = new StringBuilder();
                     sl.append(" rand: ");
                     sl.append(Utils.bytesToHex(tls.tempLog.random));

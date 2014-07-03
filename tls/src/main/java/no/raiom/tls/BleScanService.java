@@ -26,7 +26,7 @@ public class BleScanService extends Service {
         }
 
         scanLeDevice(intent.getBooleanExtra("start_scanning", false));
-        TempLogWakeToScanReceiver.completeWakefulIntent(intent);
+        WakeToScanReceiver.completeWakefulIntent(intent);
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -50,7 +50,7 @@ public class BleScanService extends Service {
     }
 
     private void connect(BluetoothDevice device) {
-        new TempLogDeviceAction((TempLogApplication)getApplication()).connect(this, device);
+        new TempLogDeviceService((TempLogApplication)getApplication()).connect(this, device);
     }
 
     private BluetoothAdapter.LeScanCallback leScanCallback =

@@ -27,9 +27,9 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".TempLogWakeToScanReceiver"></receiver>
+        <receiver android:name=".WakeToScanReceiver"></receiver>
 
-        <receiver android:name=".TempLogBootReceiver"
+        <receiver android:name=".BootReceiver"
                 android:enabled="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"></action>

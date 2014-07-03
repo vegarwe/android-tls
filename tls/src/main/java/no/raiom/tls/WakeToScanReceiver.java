@@ -8,14 +8,14 @@ import android.os.SystemClock;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 
-public class TempLogWakeToScanReceiver extends WakefulBroadcastReceiver {
+public class WakeToScanReceiver extends WakefulBroadcastReceiver {
     private static AlarmManager alarmMgr;
     private static PendingIntent alarmIntent;
     private static boolean start_scanning = true;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i("Fisken", "TempLogWakeToScanReceiver.onReceive; " + start_scanning);
+        Log.i("Fisken", "WakeToScanReceiver.onReceive; " + start_scanning);
 
         if (start_scanning) {
             _setAlarm(context, 1000 *  3);
@@ -31,11 +31,11 @@ public class TempLogWakeToScanReceiver extends WakefulBroadcastReceiver {
     }
 
     public void setAlarm(Context context) {
-        Log.i("Fisken", "TempLogWakeToScanReceiver.setAlarm");
+        Log.i("Fisken", "WakeToScanReceiver.setAlarm");
 
         _setAlarm(context, 0);
 
-//        ComponentName receiver = new ComponentName(context, TempLogBootReceiver.class);
+//        ComponentName receiver = new ComponentName(context, BootReceiver.class);
 //        PackageManager pm = context.getPackageManager();
 //
 //        pm.setComponentEnabledSetting(receiver,
@@ -44,12 +44,12 @@ public class TempLogWakeToScanReceiver extends WakefulBroadcastReceiver {
     }
 
     public void cancelAlarm(Context context) {
-        Log.e("Fisken", "TempLogWakeToScanReceiver.cancelAlarm");
+        Log.e("Fisken", "WakeToScanReceiver.cancelAlarm");
 
         _initAlarmMgr(context);
         alarmMgr.cancel(alarmIntent);
 
-//        ComponentName receiver = new ComponentName(context, TempLogBootReceiver.class);
+//        ComponentName receiver = new ComponentName(context, BootReceiver.class);
 //        PackageManager pm = context.getPackageManager();
 //
 //        pm.setComponentEnabledSetting(receiver,
@@ -65,7 +65,7 @@ public class TempLogWakeToScanReceiver extends WakefulBroadcastReceiver {
     private void _initAlarmMgr(Context context) {
         if (alarmMgr == null) {
             alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-            Intent intent = new Intent(context, TempLogWakeToScanReceiver.class);
+            Intent intent = new Intent(context, WakeToScanReceiver.class);
             alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
         }
     }
