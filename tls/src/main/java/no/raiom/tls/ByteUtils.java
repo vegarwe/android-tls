@@ -37,4 +37,8 @@ public class ByteUtils {
         }
         return byteString.toString();
     }
+
+    public static int toUInt16(byte[] bytes, int start) {
+        return (bytes[start] & 0xff) + ((bytes[start+1] & 0xff) << 8);
+    }
 }
