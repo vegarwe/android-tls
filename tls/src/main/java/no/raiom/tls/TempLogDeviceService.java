@@ -114,7 +114,7 @@ public class TempLogDeviceService {
                 return;
             }
 
-            Log.d("Fisken", "Read " + chr + " UUID " + chr.getUuid() + " value: " + Utils.bytesToHex(chr.getValue()));
+            Log.d("Fisken", "Read " + chr + " UUID " + chr.getUuid() + " value: " + ByteUtils.bytesToHex(chr.getValue()));
             if (TLS_DESC1.equals(chr.getUuid())) {
                 gatt.readCharacteristic(tls.desc2_chr);
             } else if (TLS_DESC2.equals(chr.getUuid())) {
@@ -134,7 +134,7 @@ public class TempLogDeviceService {
                 for (TempLogProfile.TempLogSample s : samples) {
                     StringBuilder sl = new StringBuilder();
                     sl.append(" rand: ");
-                    sl.append(Utils.bytesToHex(tls.tempLog.random));
+                    sl.append(ByteUtils.bytesToHex(tls.tempLog.random));
                     sl.append(" sample: ");
                     sl.append(s);
                     Log.i("Fisken", sl.toString());
