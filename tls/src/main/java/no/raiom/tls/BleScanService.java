@@ -49,10 +49,6 @@ public class BleScanService extends Service {
         }
     }
 
-    private void connect(BluetoothDevice device) {
-        new TempLogDeviceService((TempLogApplication)getApplication()).connect(this, device);
-    }
-
     private BluetoothAdapter.LeScanCallback leScanCallback =
             new BluetoothAdapter.LeScanCallback() {
 
@@ -62,7 +58,11 @@ public class BleScanService extends Service {
                     if (addrs.containsKey(device.getAddress())) {
                         if (! addrs.get(device.getAddress())) {
                             addrs.put(device.getAddress(), true);
-                            connect(device);
+
+                            Log.d("Fisken", "Starting service for: " + device.getAddress());
+                            Intent service = new Intent(getBaseContext(), TempLogDeviceService.class);
+                            service.putExtra("device_addr", device.getAddress());
+                            startService(service);
                         }
                     }
                 }

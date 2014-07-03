@@ -1,13 +1,18 @@
 package no.raiom.tls;
 
+import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.content.Intent;
+import android.os.IBinder;
 import android.util.Log;
 
 import com.dropbox.sync.android.DbxAccountManager;
@@ -20,14 +25,29 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-public class TempLogDeviceService {
+public class TempLogDeviceService extends Service {
     public final static UUID TLS_VALUE = UUID.fromString("000018fb-0000-1000-8000-00805f9b34fb");
     public final static UUID TLS_DESC1 = UUID.fromString("000018fc-0000-1000-8000-00805f9b34fb");
     public final static UUID TLS_DESC2 = UUID.fromString("000018fd-0000-1000-8000-00805f9b34fb");
-    private final TempLogApplication app;
+    private TempLogApplication app = null;
 
-    public TempLogDeviceService(TempLogApplication app) {
-        this.app = app;
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        final BluetoothAdapter btAdapter =
+                ((BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
+        app = (TempLogApplication)getApplication();
+
+        Log.i("Fisken", "TempLogDeviceSerivce: " + intent.getStringExtra("device_addr"));
+        BluetoothDevice device = btAdapter.getRemoteDevice(intent.getStringExtra("device_addr"));
+        device.connectGatt(getBaseContext(), false, leGattCallback);
+
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.e("Fisken", "TempLogDeviceService.onBind");
+        return null;
     }
 
     private class TlsServiceHandles {
@@ -40,10 +60,6 @@ public class TempLogDeviceService {
         public boolean has_all_handles() {
             return value_chr != null && value_dscr != null && desc1_chr != null && desc2_chr != null;
         }
-    }
-
-    public void connect(Context context, BluetoothDevice device) {
-        device.connectGatt(context, false, leGattCallback);
     }
 
     private final BluetoothGattCallback leGattCallback = new BluetoothGattCallback() {
