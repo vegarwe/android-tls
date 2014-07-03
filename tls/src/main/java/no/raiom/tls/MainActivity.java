@@ -12,6 +12,8 @@ import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Toast;
 
+import com.dropbox.sync.android.DbxAccountManager;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,23 +26,27 @@ public class MainActivity extends Activity {
     private static final String KEY = "WHAT_EVER";
     private ExpandableListView mConfigList;
 
+    private static final int REQUEST_LINK_TO_DBX = 0;  // This value is up to you
+    private DbxAccountManager mDbxAcctMgr;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ((TempLogApplication)getApplication()).deviceConfig = new DeviceConfig();
+        TempLogApplication app = (TempLogApplication)getApplication();
+        mDbxAcctMgr = DbxAccountManager.getInstance(getApplicationContext(), app.APP_KEY, app.APP_SECRET);
+
+        app.deviceConfig = new DeviceConfig();
 
         mHandler = new Handler();
 
         mConfigList = (ExpandableListView) findViewById(R.id.device_config_list);
-        mConfigList.setOnChildClickListener(new ExpandableListView.OnChildClickListener()
-        {
+        mConfigList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
 
             @Override
-            public boolean onChildClick(ExpandableListView arg0, View arg1, int arg2, int arg3, long arg4)
-            {
-                DeviceConfig deviceConfig = ((TempLogApplication)getApplication()).deviceConfig;
+            public boolean onChildClick(ExpandableListView arg0, View arg1, int arg2, int arg3, long arg4) {
+                DeviceConfig deviceConfig = ((TempLogApplication) getApplication()).deviceConfig;
                 DeviceConfig.Device device = deviceConfig.get(arg2);
                 if (arg3 == 1) {
                     Toast.makeText(getBaseContext(), "Started scanning", Toast.LENGTH_LONG).show();
@@ -117,6 +123,7 @@ public class MainActivity extends Activity {
 
     public void fiskClicked(View view) {
         Log.i("Fisken", "MainActivity.fiskClicked");
+        mDbxAcctMgr.startLink((Activity)this, REQUEST_LINK_TO_DBX);
     }
 
     @Override
@@ -141,6 +148,19 @@ public class MainActivity extends Activity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_LINK_TO_DBX) {
+            if (resultCode == Activity.RESULT_OK) {
+                Log.i("Fisken", "Result_OK");
+            } else {
+                Log.i("Fisken", "Failed, resultCode: " + resultCode);
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
 }

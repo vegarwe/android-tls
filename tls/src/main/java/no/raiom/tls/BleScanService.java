@@ -50,7 +50,7 @@ public class BleScanService extends Service {
     }
 
     private void connect(BluetoothDevice device) {
-        new TempLogDeviceAction().connect(this, device);
+        new TempLogDeviceAction((TempLogApplication)getApplication()).connect(this, device);
     }
 
     private BluetoothAdapter.LeScanCallback leScanCallback =
@@ -58,7 +58,7 @@ public class BleScanService extends Service {
 
                 @Override
                 public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    Log.i("Fisken", "Found device: " + device.getName() + " " + device.getAddress());
+                    Log.d("Fisken", "Found device: " + device.getName() + " " + device.getAddress());
                     if (addrs.containsKey(device.getAddress())) {
                         if (! addrs.get(device.getAddress())) {
                             addrs.put(device.getAddress(), true);

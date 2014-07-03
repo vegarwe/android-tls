@@ -10,6 +10,13 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.util.Log;
 
+import com.dropbox.sync.android.DbxAccountManager;
+import com.dropbox.sync.android.DbxException;
+import com.dropbox.sync.android.DbxFile;
+import com.dropbox.sync.android.DbxFileSystem;
+import com.dropbox.sync.android.DbxPath;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,20 +24,10 @@ public class TempLogDeviceAction {
     public final static UUID TLS_VALUE = UUID.fromString("000018fb-0000-1000-8000-00805f9b34fb");
     public final static UUID TLS_DESC1 = UUID.fromString("000018fc-0000-1000-8000-00805f9b34fb");
     public final static UUID TLS_DESC2 = UUID.fromString("000018fd-0000-1000-8000-00805f9b34fb");
+    private final TempLogApplication app;
 
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
-    private static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for ( int j = 0; j < bytes.length; j++ ) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
-    public void connect(Context context, BluetoothDevice device) {
-        device.connectGatt(context, false, leGattCallback);
+    public TempLogDeviceAction(TempLogApplication app) {
+        this.app = app;
     }
 
     private class TlsServiceHandles {
@@ -45,13 +42,19 @@ public class TempLogDeviceAction {
         }
     }
 
+    public void connect(Context context, BluetoothDevice device) {
+        device.connectGatt(context, false, leGattCallback);
+    }
+
     private final BluetoothGattCallback leGattCallback = new BluetoothGattCallback() {
-        TlsServiceHandles                 tls = null;
+        // TODO: What happens when you have more than one connection?
+        TlsServiceHandles  tls         = null;
+        DbxFile            sample_file = null;
 
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (status != BluetoothGatt.GATT_SUCCESS) {
-                Log.w("Fisken", "Wrong status, disconnect and close");
+                Log.w("Fisken", "onConnectionStateChange: Wrong status (" + status + "), disconnect and close");
                 gatt.disconnect();
                 gatt.close();
                 super.onConnectionStateChange(gatt, status, newState);
@@ -71,7 +74,10 @@ public class TempLogDeviceAction {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status != BluetoothGatt.GATT_SUCCESS) {
-                Log.w("Fisken", "onServicesDiscovered received: " + status);
+                Log.w("Fisken", "onServicesDiscovered: Wrong status (" + status + "), disconnect and close");
+                gatt.disconnect();
+                gatt.close();
+                super.onServicesDiscovered(gatt, status);
                 return;
             }
 
@@ -101,11 +107,14 @@ public class TempLogDeviceAction {
                                             BluetoothGattCharacteristic chr,
                                             int status) {
             if (status != BluetoothGatt.GATT_SUCCESS) {
-                Log.w("Fisken", "onServicesDiscovered received: " + status);
+                Log.w("Fisken", "onCharacteristicRead: Wrong status (" + status + "), disconnect and close");
+                gatt.disconnect();
+                gatt.close();
+                super.onCharacteristicRead(gatt, chr, status);
                 return;
             }
 
-            Log.d("Fisken", "Read " + chr + " UUID " + chr.getUuid() + " value: " + bytesToHex(chr.getValue()));
+            Log.d("Fisken", "Read " + chr + " UUID " + chr.getUuid() + " value: " + Utils.bytesToHex(chr.getValue()));
             if (TLS_DESC1.equals(chr.getUuid())) {
                 gatt.readCharacteristic(tls.desc2_chr);
             } else if (TLS_DESC2.equals(chr.getUuid())) {
@@ -121,17 +130,40 @@ public class TempLogDeviceAction {
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
             if (TLS_VALUE.equals(characteristic.getUuid())) {
-
                 List<TempLog.TempLogSample> samples = tls.tempLog.decode_samples(characteristic.getValue());
                 for (TempLog.TempLogSample s : samples) {
                     StringBuilder sl = new StringBuilder();
                     sl.append(" rand: ");
-                    sl.append(bytesToHex(tls.tempLog.random));
+                    sl.append(Utils.bytesToHex(tls.tempLog.random));
                     sl.append(" sample: ");
                     sl.append(s);
                     Log.i("Fisken", sl.toString());
+                    appendString(sl.toString() + "\n");
                 }
             }
+        }
+
+        private void appendString(String sample) {
+            if (sample_file == null) {
+                DbxAccountManager dbxAcctMgr = DbxAccountManager.getInstance(app.getApplicationContext(), app.APP_KEY, app.APP_SECRET);
+                try {
+                    DbxFileSystem dbxFs = DbxFileSystem.forAccount(dbxAcctMgr.getLinkedAccount());
+                    sample_file = dbxFs.open(new DbxPath("hello.txt"));
+                } catch (DbxException.Unauthorized e) {
+                    e.printStackTrace();
+                } catch (DbxException e) {
+                    e.printStackTrace();
+                }
+            }
+            try {
+                sample_file.appendString(sample);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                sample_file.close();
+                sample_file = null;
+            }
+
         }
     };
 }
