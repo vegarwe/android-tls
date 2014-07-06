@@ -121,14 +121,14 @@ public class TempLogProfile extends Service {
                     return;
                 }
 
-                TempLogApplication app = (TempLogApplication)getApplication();
+                AppConfig app = AppConfig.getInstance(TempLogProfile.this);
                 String filename = ByteUtils.bytesToHex(random).toLowerCase() + ".csv";
                 String device_name = gatt.getDevice().getName();
                 if (device_name != null) {
                     filename = device_name + "_" + filename;
                 }
                 // TODO: Do I really need the ApplicationContext here?
-                DropboxAppender dropbox = new DropboxAppender(getApplicationContext(), app.APP_KEY, app.APP_SECRET, filename);
+                DropboxAppender dropbox = new DropboxAppender(TempLogProfile.this, filename);
                 for (TempLogProfile.TempLogSample s : samples) {
                     dropbox.appendString(s.toString() + "\n");
                 }

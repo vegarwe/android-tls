@@ -12,8 +12,6 @@ import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Toast;
 
-import com.dropbox.sync.android.DbxAccountManager;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,20 +25,16 @@ public class MainActivity extends Activity {
     private ExpandableListView mConfigList;
 
     private static final int REQUEST_LINK_TO_DBX = 0;  // This value is up to you
-    private DbxAccountManager mDbxAcctMgr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TempLogApplication app = (TempLogApplication)getApplication();
-        mDbxAcctMgr = DbxAccountManager.getInstance(this, app.APP_KEY, app.APP_SECRET);
-        if (mDbxAcctMgr.hasLinkedAccount()) {
+        final AppConfig app = AppConfig.getInstance(this);
+        if (DropboxAppender.hasLinkedAccount(this)) {
             findViewById(R.id.fisk).setVisibility(View.INVISIBLE);
         }
-
-        app.deviceConfig = new TempLogDeviceConfig();
 
         mHandler = new Handler();
 
@@ -49,7 +43,7 @@ public class MainActivity extends Activity {
 
             @Override
             public boolean onChildClick(ExpandableListView arg0, View arg1, int arg2, int arg3, long arg4) {
-                TempLogDeviceConfig deviceConfig = ((TempLogApplication) getApplication()).deviceConfig;
+                TempLogDeviceConfig deviceConfig = AppConfig.getInstance(MainActivity.this).deviceConfig;
                 TempLogDeviceConfig.Device device = deviceConfig.get(arg2);
                 if (arg3 == 1) {
                     Toast.makeText(MainActivity.this, "Started scanning", Toast.LENGTH_LONG).show();
@@ -82,7 +76,7 @@ public class MainActivity extends Activity {
         List<Map<String, String>> groupData = new ArrayList<Map<String, String>>();
         List<List<Map<String, String>>> childData = new ArrayList<List<Map<String, String>>>();
 
-        TempLogDeviceConfig deviceConfig = ((TempLogApplication)getApplication()).deviceConfig;
+        TempLogDeviceConfig deviceConfig = AppConfig.getInstance(this).deviceConfig;
         for (TempLogDeviceConfig.Device device : deviceConfig) {
             Map<String, String> curGroupMap = new HashMap<String, String>();
             groupData.add(curGroupMap);
@@ -126,7 +120,7 @@ public class MainActivity extends Activity {
 
     public void fiskClicked(View view) {
         Log.i("Fisken", "MainActivity.fiskClicked");
-        mDbxAcctMgr.startLink((Activity)this, REQUEST_LINK_TO_DBX);
+        DropboxAppender.startLink((Activity)this, this, REQUEST_LINK_TO_DBX);
     }
 
     @Override
