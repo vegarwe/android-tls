@@ -18,6 +18,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class TempLogProfile extends Service {
@@ -25,7 +26,6 @@ public class TempLogProfile extends Service {
     private final static UUID TLS_DESC1 = UUID.fromString("000018fc-0000-1000-8000-00805f9b34fb");
     private final static UUID TLS_DESC2 = UUID.fromString("000018fd-0000-1000-8000-00805f9b34fb");
 
-    private Context             context;
     private byte[]              random;
     private int                 sample_interval;
     private int                 base_sample_num;
@@ -45,8 +45,7 @@ public class TempLogProfile extends Service {
         final BluetoothAdapter btAdapter =
                 ((BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
         BluetoothDevice device = btAdapter.getRemoteDevice(intent.getStringExtra("device_addr"));
-        device.connectGatt(getBaseContext(), false, leGattCallback);
-        this.context = this;
+        device.connectGatt(TempLogProfile.this, false, leGattCallback);
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -63,9 +62,6 @@ public class TempLogProfile extends Service {
 
     private void from_byte_data(long now, byte[] desc1, byte[] desc2) {
         random          = Arrays.copyOfRange(desc1, 0, 16);
-//        sample_interval =       (desc1[16] & 0xff) + ((desc1[17] & 0xff) << 8);
-//        base_sample_num =       (desc2[ 0] & 0xff) + ((desc2[ 1] & 0xff) << 8);
-//        base_sample_ts  = now - (desc2[ 2] & 0xff) + ((desc2[ 3] & 0xff) << 8);
         sample_interval = ByteUtils.toUInt16(desc1, 16);
         base_sample_num = ByteUtils.toUInt16(desc2, 0);
         base_sample_ts  = now - ByteUtils.toUInt16(desc2, 2);
@@ -74,11 +70,9 @@ public class TempLogProfile extends Service {
     private void decode_samples(byte[] data) {
         byte flags            =  data[0];
         int  num_logs         = (data[1] & 0xff);
-//        int  first_sample_num = ((data[2] & 0xff) + ((data[3] & 0xff) << 8));
         int  first_sample_num = ByteUtils.toUInt16(data, 2);
         for (int i = 0; i < num_logs; i++) {
             int    sample_num = first_sample_num + i;
-//            double sample     = 0.0625 * ((data[4 + (2 * i)] & 0xff) + ((data[5 + (2 * i)] & 0xff) << 8));
             double sample     = 0.0625 * ByteUtils.toUInt16(data, 4 + (2*i));
             long   ts         = base_sample_ts + ((sample_num - base_sample_num) * sample_interval);
             samples.add(new TempLogSample(sample_num, sample, sample_num * sample_interval, ts));
@@ -100,7 +94,7 @@ public class TempLogProfile extends Service {
 
         @Override
         public String toString() {
-            return String.format("%4d;%3.2f;%s;%s",
+            return String.format(Locale.FRANCE, "%d;%3.2f;%s;%s",
                     sample_number, sample, seconds_since_start, ts);
         }
     }
@@ -123,12 +117,17 @@ public class TempLogProfile extends Service {
                 Log.i("Fisken", "Disconnected " + gatt);
                 gatt.close();
 
+                if (samples.isEmpty()) {
+                    return;
+                }
+
                 TempLogApplication app = (TempLogApplication)getApplication();
-                String filename = ByteUtils.bytesToHex(random) + ".csv";
+                String filename = ByteUtils.bytesToHex(random).toLowerCase() + ".csv";
                 String device_name = gatt.getDevice().getName();
                 if (device_name != null) {
                     filename = device_name + "_" + filename;
                 }
+                // TODO: Do I really need the ApplicationContext here?
                 DropboxAppender dropbox = new DropboxAppender(getApplicationContext(), app.APP_KEY, app.APP_SECRET, filename);
                 for (TempLogProfile.TempLogSample s : samples) {
                     dropbox.appendString(s.toString() + "\n");
@@ -185,7 +184,7 @@ public class TempLogProfile extends Service {
                 gatt.readCharacteristic(desc2_chr);
             } else if (TLS_DESC2.equals(chr.getUuid())) {
                 // Capture timestamp and decode templog meta data
-                long now = System.currentTimeMillis();
+                long now = System.currentTimeMillis() / 1000;
                 from_byte_data(now, desc1_chr.getValue(), desc2_chr.getValue());
 
                 // Enable services
