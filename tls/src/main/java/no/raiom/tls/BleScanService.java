@@ -59,7 +59,7 @@ public class BleScanService extends Service {
                         if (! addrs.get(device.getAddress())) {
                             addrs.put(device.getAddress(), true);
 
-                            Intent service = new Intent(getBaseContext(), TempLogProfile.class);
+                            Intent service = new Intent(BleScanService.this, TempLogProfile.class);
                             service.putExtra("device_addr", device.getAddress());
                             startService(service);
                         }

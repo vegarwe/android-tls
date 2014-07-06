@@ -44,10 +44,10 @@ public class DropboxAppender {
         try {
             DbxFileSystem dbxFs = DbxFileSystem.forAccount(dbxAcctMgr.getLinkedAccount());
             if (dbxFs.exists(new DbxPath(filename))) {
-                Log.i("Fisken", "dbxFs.open");
+                Log.i("Fisken", "dbxFs.open: " + filename);
                 sample_file = dbxFs.open(new DbxPath(filename));
             } else {
-                Log.i("Fisken", "dbxFs.create");
+                Log.i("Fisken", "dbxFs.create: " + filename);
                 sample_file = dbxFs.create(new DbxPath(filename));
             }
         } catch (DbxException.Unauthorized e) {

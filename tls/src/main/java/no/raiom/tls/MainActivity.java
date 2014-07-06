@@ -35,7 +35,10 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         TempLogApplication app = (TempLogApplication)getApplication();
-        mDbxAcctMgr = DbxAccountManager.getInstance(getApplicationContext(), app.APP_KEY, app.APP_SECRET);
+        mDbxAcctMgr = DbxAccountManager.getInstance(this, app.APP_KEY, app.APP_SECRET);
+        if (mDbxAcctMgr.hasLinkedAccount()) {
+            findViewById(R.id.fisk).setVisibility(View.INVISIBLE);
+        }
 
         app.deviceConfig = new TempLogDeviceConfig();
 
@@ -49,9 +52,9 @@ public class MainActivity extends Activity {
                 TempLogDeviceConfig deviceConfig = ((TempLogApplication) getApplication()).deviceConfig;
                 TempLogDeviceConfig.Device device = deviceConfig.get(arg2);
                 if (arg3 == 1) {
-                    Toast.makeText(getBaseContext(), "Started scanning", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Started scanning", Toast.LENGTH_LONG).show();
                     Log.i("Fisken", "Started scanning");
-                    Intent service = new Intent(getBaseContext(), BleScanService.class);
+                    Intent service = new Intent(MainActivity.this, BleScanService.class);
                     service.putExtra("start_scanning", true);
                     ArrayList addrs = new ArrayList();
                     addrs.add(device.device);
@@ -60,7 +63,7 @@ public class MainActivity extends Activity {
                     mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            Intent service = new Intent(getBaseContext(), BleScanService.class);
+                            Intent service = new Intent(MainActivity.this, BleScanService.class);
                             service.putExtra("start_scanning", false);
                             startService(service);
                         }
