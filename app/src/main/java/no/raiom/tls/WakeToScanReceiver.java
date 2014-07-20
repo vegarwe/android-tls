@@ -23,9 +23,9 @@ public class WakeToScanReceiver extends WakefulBroadcastReceiver {
             _setAlarm(context, 1000 * 57);
         }
 
-        Intent service = new Intent(context, BleScanService.class);
-        service.putExtra("start_scanning", start_scanning);
-        startWakefulService(context, service);
+        //Intent service = new Intent(context, TempLogScanner.class);
+        //service.putExtra("start_scanning", start_scanning);
+        //startWakefulService(context, service);
 
         start_scanning = !start_scanning;
     }
