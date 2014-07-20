@@ -35,8 +35,7 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED"></action>
             </intent-filter>
         </receiver>
-        <service android:name=".BleScanService" />
-        <service android:name=".TempLogProfile" />
+        <service android:name=".TempLogProfile" android:exported="false" />
 
         <!-- Dropbox stuff -->
         <activity android:name="com.dropbox.sync.android.DbxAuthActivity" />
