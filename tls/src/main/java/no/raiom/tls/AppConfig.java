@@ -2,9 +2,6 @@ package no.raiom.tls;
 
 import android.content.Context;
 
-/**
- * Created by vegarwe on 18.05.2014.
- */
 public class AppConfig {
     private static AppConfig app_instance = null;
 

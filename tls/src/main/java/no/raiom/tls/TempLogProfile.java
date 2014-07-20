@@ -128,11 +128,13 @@ public class TempLogProfile extends Service {
                     filename = device_name + "_" + filename;
                 }
                 // TODO: Do I really need the ApplicationContext here?
-                DropboxAppender dropbox = new DropboxAppender(TempLogProfile.this, filename);
+                // Uncomment for now
+                //DropboxAppender dropbox = new DropboxAppender(TempLogProfile.this, filename);
                 for (TempLogProfile.TempLogSample s : samples) {
-                    dropbox.appendString(s.toString() + "\n");
+                    Log.i("Fisken", "sample " + s.toString());
+                    //dropbox.appendString(s.toString() + "\n");
                 }
-                dropbox.close();
+                //dropbox.close();
             }
         }
 
