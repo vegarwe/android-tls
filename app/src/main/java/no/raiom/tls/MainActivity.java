@@ -20,6 +20,7 @@ import java.util.Map;
 public class MainActivity extends Activity {
     WakeToScanReceiver alarm = new WakeToScanReceiver();
     private Handler mHandler;
+    private AppConfig app;
 
     private static final String KEY = "WHAT_EVER";
     private ExpandableListView mConfigList;
@@ -31,7 +32,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final AppConfig app = AppConfig.getInstance(this);
+        app = AppConfig.getInstance(this);
         if (DropboxAppender.hasLinkedAccount(this)) {
             findViewById(R.id.fisk).setVisibility(View.INVISIBLE);
         }
@@ -47,21 +48,21 @@ public class MainActivity extends Activity {
                 TempLogDeviceConfig.Device device = deviceConfig.get(arg2);
                 if (arg3 == 1) {
                     Toast.makeText(MainActivity.this, "Started scanning", Toast.LENGTH_LONG).show();
-                    Log.i("Fisken", "Started scanning");
-                    Intent service = new Intent(MainActivity.this, BleScanService.class);
-                    service.putExtra("start_scanning", true);
-                    ArrayList addrs = new ArrayList();
-                    addrs.add(device.device);
-                    service.putStringArrayListExtra("device_addrs", addrs);
-                    startService(service);
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            Intent service = new Intent(MainActivity.this, BleScanService.class);
-                            service.putExtra("start_scanning", false);
-                            startService(service);
-                        }
-                    }, 1000);
+                    //Log.i("Fisken", "Started scanning");
+                    //Intent service = new Intent(MainActivity.this, BleScanService.class);
+                    //service.putExtra("start_scanning", true);
+                    //ArrayList addrs = new ArrayList();
+                    //addrs.add(device.device);
+                    //service.putStringArrayListExtra("device_addrs", addrs);
+                    //startService(service);
+                    //mHandler.postDelayed(new Runnable() {
+                    //    @Override
+                    //    public void run() {
+                    //        Intent service = new Intent(MainActivity.this, BleScanService.class);
+                    //        service.putExtra("start_scanning", false);
+                    //        startService(service);
+                    //    }
+                    //}, 1000);
                 }
                 Log.i("Fisken", "arg2 " + arg2 + " arg3 " + arg3 + " device.addr" + device.device);
                 return false;
@@ -112,10 +113,12 @@ public class MainActivity extends Activity {
 
     public void onClicked(View view) {
         Log.i("Fisken", "MainActivity.onClicked");
+        app.getScanner().startScan();
     }
 
     public void offClicked(View view) {
         Log.i("Fisken", "MainActivity.offClicked");
+        app.getScanner().stopScan();
     }
 
     public void fiskClicked(View view) {
@@ -159,5 +162,4 @@ public class MainActivity extends Activity {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
-
 }
