@@ -11,6 +11,9 @@ Thumbs.db
 .classpath
 .project
 
+# Grails?
+/build
+
 # Android studio
 .gradle
 /.idea
