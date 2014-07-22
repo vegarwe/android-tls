@@ -123,7 +123,7 @@ public class MainActivity extends Activity {
 
     public void fiskClicked(View view) {
         Log.i("Fisken", "MainActivity.fiskClicked");
-        DropboxAppender.startLink((Activity)this, this, REQUEST_LINK_TO_DBX);
+        //DropboxAppender.startLink((Activity)this, this, REQUEST_LINK_TO_DBX);
     }
 
     @Override
