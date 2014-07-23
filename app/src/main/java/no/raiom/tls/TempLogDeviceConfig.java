@@ -1,20 +1,26 @@
 package no.raiom.tls;
 
+import android.bluetooth.le.ScanRecord;
+import android.bluetooth.le.ScanResult;
+
 import java.util.ArrayList;
 
-/**
- * Created by vegarwe on 18.05.2014.
- */
 public class TempLogDeviceConfig extends ArrayList<TempLogDeviceConfig.Device> {
 
     public TempLogDeviceConfig() {
         add(new Device("fd:ed:32:a4:74:a2", "TLS_480206234", "Dev device"));
-        add(new Device("11:22:33:44:55:66", "fjase", "Ehhhh, kanskjde.de?"));
-        add(new Device("11:33:22:55:44:66", "flyndre", "Joda, men neida"));
-        add(new Device("66:55:44:33:22:11", "flatfisk", "Nei, altsaa"));
     }
 
-    public class Device {
+    public Device getDevice(String addr) {
+        for (TempLogDeviceConfig.Device device : this) {
+            if (device.device.equals(addr)) {
+                return device;
+            }
+        }
+        return null;
+    }
+
+    public static class Device {
         public String device;
         public String name;
         public String desc;
@@ -23,6 +29,13 @@ public class TempLogDeviceConfig extends ArrayList<TempLogDeviceConfig.Device> {
             this.device = device.toUpperCase();
             this.name   = name;
             this.desc   = desc;
+        }
+
+        public static Device fromScanResult(ScanResult result) {
+            ScanRecord record = ScanRecord.parseFromBytes(result.getScanRecord());
+            String addr = result.getDevice().getAddress();
+            String device_name = record.getLocalName();
+            return new Device(addr, device_name, "");
         }
     }
 }
