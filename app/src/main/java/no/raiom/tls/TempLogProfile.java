@@ -107,6 +107,7 @@ public class TempLogProfile extends Service {
                 gatt.disconnect();
                 gatt.close();
                 super.onConnectionStateChange(gatt, status, newState);
+                // TODO stopSelf is in order...
                 return;
             }
 
