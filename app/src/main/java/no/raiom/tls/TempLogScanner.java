@@ -21,7 +21,7 @@ import java.util.UUID;
 
 
 public class TempLogScanner {
-    private final static UUID                       TLS_SERVI = UUID.fromString("000018fa-0000-1000-8000-00805f9b34fb");
+    public final static UUID                       TLS_SERVI = UUID.fromString("000018fa-0000-1000-8000-00805f9b34fb");
     private AppConfig                               config;
     private BluetoothLeScanner scanner;
 
@@ -41,7 +41,7 @@ public class TempLogScanner {
         List<ScanFilter> filters = new ArrayList<ScanFilter>();
         ScanFilter.Builder filter_builder = new ScanFilter.Builder();
         filter_builder.setServiceUuid(new ParcelUuid(TLS_SERVI));
-        filter_builder.setServiceData(ByteUtils.hexStringToByteArray("FE1801"));
+        filter_builder.setServiceData(ByteUtils.hexStringToByteArray("FE1803"));
         filters.add(filter_builder.build());
 
         // Settings
