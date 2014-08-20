@@ -46,32 +46,43 @@ public class MainActivity extends Activity {
             public boolean onChildClick(ExpandableListView arg0, View arg1, int arg2, int arg3, long arg4) {
                 TempLogDeviceConfig deviceConfig = AppConfig.getInstance(MainActivity.this).deviceConfig;
                 TempLogDeviceConfig.Device device = deviceConfig.get(arg2);
-                if (arg3 == 1) {
-                    Toast.makeText(MainActivity.this, "Started scanning", Toast.LENGTH_LONG).show();
-                    //Log.i("Fisken", "Started scanning");
-                    //Intent service = new Intent(MainActivity.this, BleScanService.class);
-                    //service.putExtra("start_scanning", true);
-                    //ArrayList addrs = new ArrayList();
-                    //addrs.add(device.device);
-                    //service.putStringArrayListExtra("device_addrs", addrs);
-                    //startService(service);
-                    //mHandler.postDelayed(new Runnable() {
-                    //    @Override
-                    //    public void run() {
-                    //        Intent service = new Intent(MainActivity.this, BleScanService.class);
-                    //        service.putExtra("start_scanning", false);
-                    //        startService(service);
-                    //    }
-                    //}, 1000);
+                if (arg3 == 0) {
+                    Toast.makeText(MainActivity.this, "Connecting to " + device.name, Toast.LENGTH_LONG).show();
+                    Intent service = new Intent(MainActivity.this, TempLogProfile.class);
+                    service.putExtra("device_addr", device.device);
+                    startService(service);
                 }
                 Log.i("Fisken", "arg2 " + arg2 + " arg3 " + arg3 + " device.addr" + device.device);
                 return false;
             }
         });
+
+        app.deviceConfig.registerDataSetChangedHandler(dataSetChangedHandler);
         populateList();
 
         Log.i("Fisken", "Mainactivity.onCreate");
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        app.deviceConfig.registerDataSetChangedHandler(dataSetChangedHandler);
+    }
+
+
+        private TempLogDeviceConfig.DataSetChangedHandler dataSetChangedHandler =
+        new TempLogDeviceConfig.DataSetChangedHandler() {
+            public void onDataSetChangedCallback() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        populateList();
+                    }
+                });
+
+            }
+        };
 
     public void populateList() {
         List<Map<String, String>> groupData = new ArrayList<Map<String, String>>();
@@ -88,10 +99,6 @@ public class MainActivity extends Activity {
             Map<String, String> curChildMap = new HashMap<String, String>();
             children.add(curChildMap);
             curChildMap.put(KEY, device.device);
-
-            curChildMap = new HashMap<String, String>();
-            children.add(curChildMap);
-            curChildMap.put(KEY, device.desc);
 
             childData.add(children);
         }
