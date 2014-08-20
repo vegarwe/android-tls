@@ -53,13 +53,11 @@ public class TempLogScanner {
         // Start scan
         Log.i("Fisken", "TempLogScanner.startScan: settings " + settings + " filters " + filters + " leScanCallback " + leScanCallback);
         getScanner().startScan(filters, settings, leScanCallback);
-        Log.i("Fisken", "getScanner: " + getScanner());
     }
 
     public void stopScan() {
         Log.i("Fisken", "TempLogScanner.stopScan: " + leScanCallback);
         getScanner().stopScan(leScanCallback);
-        Log.i("Fisken", "getScanner: " + getScanner());
     }
 
     private ScanCallback leScanCallback =
@@ -109,6 +107,7 @@ public class TempLogScanner {
             BluetoothAdapter adapter = manager.getAdapter();
             scanner                  = adapter.getBluetoothLeScanner();
         }
+        Log.i("Fisken", "getScanner: " + scanner);
         return scanner;
     }
 
