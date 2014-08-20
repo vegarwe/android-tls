@@ -6,9 +6,10 @@ import android.bluetooth.le.ScanResult;
 import java.util.ArrayList;
 
 public class TempLogDeviceConfig extends ArrayList<TempLogDeviceConfig.Device> {
+    private ArrayList<DataSetChangedHandler> handlers;
 
     public TempLogDeviceConfig() {
-        add(new Device("fd:ed:32:a4:74:a2", "TLS_480206234", "Dev device"));
+        handlers = new ArrayList<DataSetChangedHandler>();
     }
 
     public Device getDevice(String addr) {
@@ -18,6 +19,33 @@ public class TempLogDeviceConfig extends ArrayList<TempLogDeviceConfig.Device> {
             }
         }
         return null;
+    }
+
+    public interface DataSetChangedHandler {
+        public void onDataSetChangedCallback();
+    }
+
+    public void registerDataSetChangedHandler(DataSetChangedHandler handler) {
+        handlers.add(handler);
+    }
+
+    public void unregisterDataSetChangedHandler(DataSetChangedHandler handler) {
+        if (handlers.contains(handler)) {
+            handlers.remove(handler);
+        }
+    }
+
+    private void notifyDataSetChanged() {
+        for (DataSetChangedHandler handler : handlers) {
+            handler.onDataSetChangedCallback();
+        }
+    }
+
+    @Override
+    public boolean add(Device d) {
+        super.add(d);
+        notifyDataSetChanged();
+        return true;
     }
 
     public static class Device {
