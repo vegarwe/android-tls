@@ -120,17 +120,24 @@ public class MainActivity extends Activity {
 
     public void onClicked(View view) {
         Log.i("Fisken", "MainActivity.onClicked");
-        app.getScanner().startScan();
+        startService(new Intent(this, TempLogScanner.class));
     }
 
     public void offClicked(View view) {
         Log.i("Fisken", "MainActivity.offClicked");
-        app.getScanner().stopScan();
+        stopService(new Intent(this, TempLogScanner.class));
     }
 
     public void fiskClicked(View view) {
         Log.i("Fisken", "MainActivity.fiskClicked");
         //DropboxAppender.startLink((Activity)this, this, REQUEST_LINK_TO_DBX);
+    }
+
+    public void fjasClicked(View view) {
+        Log.i("Fisken", "MainActivity.fjasClicked");
+        AppConfig config = AppConfig.getInstance(this);
+        config.deviceConfig.clear();
+        populateList();
     }
 
     @Override
