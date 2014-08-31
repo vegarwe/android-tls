@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">TempLog</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="hello_world">H</string>
     <string name="action_settings">Settings</string>
 
     <string name="start_text">Start Alarm</string>
