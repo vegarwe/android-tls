@@ -26,6 +26,7 @@ public class TempLogProfile extends Service {
     private final static UUID TLS_DESC1 = UUID.fromString("000018fc-0000-1000-8000-00805f9b34fb");
     private final static UUID TLS_DESC2 = UUID.fromString("000018fd-0000-1000-8000-00805f9b34fb");
 
+    private boolean             is_running;
     private byte[]              random;
     private int                 sample_interval;
     private int                 base_sample_num;
@@ -40,6 +41,12 @@ public class TempLogProfile extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i("Fisken", "TempLogDeviceSerivce: " + intent.getStringExtra("device_addr"));
+
+        if (is_running) {
+            Log.w("Fisken", "TempLogProfile: Already running, Don't start new");
+            return super.onStartCommand(intent, flags, startId);
+        }
+        is_running = true;
         samples = new ArrayList<TempLogSample>();
 
         final BluetoothAdapter btAdapter =
@@ -54,6 +61,14 @@ public class TempLogProfile extends Service {
     public IBinder onBind(Intent intent) {
         Log.e("Fisken", "TempLogProfile.onBind");
         return null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.i("Fisken", "TempLogProfile.onDestroy");
+
+        is_running = false;
     }
 
     private boolean has_all_handles() {
@@ -99,44 +114,58 @@ public class TempLogProfile extends Service {
         }
     }
 
+    private void writeSamples(BluetoothGatt gatt) {
+        if (samples.isEmpty()) {
+            Log.d("Fisken", "No samples received. Nothing more to do");
+            return;
+        }
+
+        AppConfig app = AppConfig.getInstance(this);
+        String filename = ByteUtils.bytesToHex(random).toLowerCase() + ".csv";
+        String device_name = gatt.getDevice().getName();
+        if (device_name != null) {
+            filename = device_name + "_" + filename;
+        }
+        // TODO: Do I really need the ApplicationContext here?
+        // Uncomment for now
+        //DropboxAppender dropbox = new DropboxAppender(TempLogProfile.this, filename);
+        for (TempLogProfile.TempLogSample s : samples) {
+            Log.i("Fisken", "sample " + s.toString());
+            //dropbox.appendString(s.toString() + "\n");
+        }
+        //dropbox.close();
+
+        samples.clear();
+    }
+
     private final BluetoothGattCallback leGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            if (status != BluetoothGatt.GATT_SUCCESS) {
-                Log.w("Fisken", "onConnectionStateChange: Wrong status (" + status + "), disconnect and close");
-                gatt.disconnect();
-                gatt.close();
-                super.onConnectionStateChange(gatt, status, newState);
-                // TODO stopSelf is in order...
-                return;
-            }
-
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                Log.i("Fisken", "Connected " + gatt);
-                gatt.discoverServices();
+                if (status != BluetoothGatt.GATT_SUCCESS) {
+                    Log.e("Fisken", "onConnectionStateChange: Wrong status (" + status + "), disconnect and close. gatt=" + gatt);
+                    gatt.disconnect();
+                    gatt.close();
+                    stopSelf();
+                } else {
+                    Log.i("Fisken", "Connected " + gatt);
+                    gatt.discoverServices();
+                }
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                Log.i("Fisken", "Disconnected " + gatt);
+                if (status == 0x13) {
+                    Log.i("Fisken", "onConnectionStateChange: Remote disconnect (" + status + "), close. gatt=" + gatt);
+                } else if (status != BluetoothGatt.GATT_SUCCESS) {
+                    Log.e("Fisken", "onConnectionStateChange: Wrong status (" + status + "), disconnect and close. gatt=" + gatt);
+                } else {
+                    Log.i("Fisken", "Disconnected. gatt=" + gatt);
+                }
+
                 gatt.close();
-
-                if (samples.isEmpty()) {
-                    return;
-                }
-
-                AppConfig app = AppConfig.getInstance(TempLogProfile.this);
-                String filename = ByteUtils.bytesToHex(random).toLowerCase() + ".csv";
-                String device_name = gatt.getDevice().getName();
-                if (device_name != null) {
-                    filename = device_name + "_" + filename;
-                }
-                // TODO: Do I really need the ApplicationContext here?
-                // Uncomment for now
-                //DropboxAppender dropbox = new DropboxAppender(TempLogProfile.this, filename);
-                for (TempLogProfile.TempLogSample s : samples) {
-                    Log.i("Fisken", "sample " + s.toString());
-                    //dropbox.appendString(s.toString() + "\n");
-                }
-                //dropbox.close();
+                writeSamples(gatt);
+                stopSelf();
             }
+
+            //super.onConnectionStateChange(gatt, status, newState);
         }
 
         @Override
@@ -201,6 +230,7 @@ public class TempLogProfile extends Service {
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
             if (TLS_VALUE.equals(characteristic.getUuid())) {
+                Log.d("Fisken", "onCharacteristicChanged: notification: todo");
                 decode_samples(characteristic.getValue());
             }
         }
