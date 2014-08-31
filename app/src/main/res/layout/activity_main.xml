@@ -39,6 +39,13 @@
             android:text="fisk"
             android:id="@+id/fisk"
             />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="fjasClicked"
+            android:text="fjas"
+            android:id="@+id/fjas"
+            />
     </LinearLayout>
 
     <ExpandableListView android:id="@+id/device_config_list"
