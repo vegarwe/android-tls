@@ -10,18 +10,9 @@ public class AppConfig {
     public static final String APP_KEY    = "3f0zvk7t1aib5dd";
     public static final String APP_SECRET = "tvdzxfe1dkpd694";
 
-    public TempLogScanner scanner = null;
-
     private AppConfig(Context context) {
         this.context = context;
         this.deviceConfig = new TempLogDeviceConfig();
-    }
-
-    public TempLogScanner getScanner() {
-        if (scanner == null) {
-            scanner = new TempLogScanner(this);
-        }
-        return scanner;
     }
 
     public static AppConfig getInstance(Context context) {
