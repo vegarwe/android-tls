@@ -13,26 +13,27 @@ import com.dropbox.sync.android.DbxPath;
 import java.io.IOException;
 
 public class DropboxAppender {
-    private String            filename;
-    private DbxFile           sample_file;
+    private String    filename;
+    private DbxFile   sample_file;
     private AppConfig app;
+    private Context   context;
 
     public DropboxAppender(Context context, String filename) {
         this.filename = filename;
-        app = AppConfig.getInstance(context);
+        this.context  = context.getApplicationContext();
         sample_file = null;
     }
 
     public static boolean hasLinkedAccount(Context context) {
-        AppConfig app = AppConfig.getInstance(context);
-        DbxAccountManager dbxAcctMgr = DbxAccountManager.getInstance(app.context, app.APP_KEY, app.APP_SECRET);
+        AppConfig app = AppConfig.getInstance();
+        DbxAccountManager dbxAcctMgr = DbxAccountManager.getInstance(context.getApplicationContext(), app.APP_KEY, app.APP_SECRET);
         return dbxAcctMgr.hasLinkedAccount();
     }
 
     public static void startLink(Activity activity, Context context, int callbackRequestCode) {
         // TODO: Cast activity to Context rather than ask for parmater?
-        AppConfig app = AppConfig.getInstance(context);
-        DbxAccountManager dbxAcctMgr = DbxAccountManager.getInstance(app.context, app.APP_KEY, app.APP_SECRET);
+        AppConfig app = AppConfig.getInstance();
+        DbxAccountManager dbxAcctMgr = DbxAccountManager.getInstance(context, app.APP_KEY, app.APP_SECRET);
         dbxAcctMgr.startLink(activity, callbackRequestCode);
     }
 
@@ -56,7 +57,7 @@ public class DropboxAppender {
         if (sample_file != null) return;
 
         try {
-            DbxAccountManager dbxAcctMgr = DbxAccountManager.getInstance(app.context, app.APP_KEY, app.APP_SECRET);
+            DbxAccountManager dbxAcctMgr = DbxAccountManager.getInstance(context, app.APP_KEY, app.APP_SECRET);
             DbxFileSystem dbxFs = DbxFileSystem.forAccount(dbxAcctMgr.getLinkedAccount());
             if (dbxFs.exists(new DbxPath(filename))) {
                 Log.i("Fisken", "dbxFs.open: " + filename);
