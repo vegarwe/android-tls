@@ -19,8 +19,6 @@ import java.util.Map;
 
 public class MainActivity extends Activity {
     WakeToScanReceiver alarm = new WakeToScanReceiver();
-    private Handler mHandler;
-    private AppConfig app;
 
     private static final String KEY = "WHAT_EVER";
     private ExpandableListView mConfigList;
@@ -32,19 +30,16 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        app = AppConfig.getInstance(this);
         if (DropboxAppender.hasLinkedAccount(this)) {
-            findViewById(R.id.fisk).setVisibility(View.INVISIBLE);
+            //findViewById(R.id.fisk).setVisibility(View.INVISIBLE);
         }
-
-        mHandler = new Handler();
 
         mConfigList = (ExpandableListView) findViewById(R.id.device_config_list);
         mConfigList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
 
             @Override
             public boolean onChildClick(ExpandableListView arg0, View arg1, int arg2, int arg3, long arg4) {
-                TempLogDeviceConfig deviceConfig = AppConfig.getInstance(MainActivity.this).deviceConfig;
+                TempLogDeviceConfig deviceConfig = TempLogDeviceConfig.getInstance();
                 TempLogDeviceConfig.Device device = deviceConfig.get(arg2);
                 if (arg3 == 0) {
                     Toast.makeText(MainActivity.this, "Connecting to " + device.name, Toast.LENGTH_LONG).show();
@@ -57,7 +52,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        app.deviceConfig.registerDataSetChangedHandler(dataSetChangedHandler);
+        TempLogDeviceConfig.getInstance().registerDataSetChangedHandler(dataSetChangedHandler);
         populateList();
 
         Log.i("Fisken", "Mainactivity.onCreate");
@@ -67,7 +62,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
 
-        app.deviceConfig.registerDataSetChangedHandler(dataSetChangedHandler);
+        TempLogDeviceConfig.getInstance().registerDataSetChangedHandler(dataSetChangedHandler);
     }
 
 
@@ -88,7 +83,7 @@ public class MainActivity extends Activity {
         List<Map<String, String>> groupData = new ArrayList<Map<String, String>>();
         List<List<Map<String, String>>> childData = new ArrayList<List<Map<String, String>>>();
 
-        TempLogDeviceConfig deviceConfig = AppConfig.getInstance(this).deviceConfig;
+        TempLogDeviceConfig deviceConfig = TempLogDeviceConfig.getInstance();
         for (TempLogDeviceConfig.Device device : deviceConfig) {
             Map<String, String> curGroupMap = new HashMap<String, String>();
             groupData.add(curGroupMap);
@@ -118,25 +113,29 @@ public class MainActivity extends Activity {
         mConfigList.setAdapter(mConfigAdapter);
     }
 
-    public void onClicked(View view) {
-        Log.i("Fisken", "MainActivity.onClicked");
-        startService(new Intent(this, TempLogScanner.class));
+    public void autoClicked(View view) {
+        Log.i("Fisken", "MainActivity.autoClicked");
+        Intent service = new Intent(this, TempLogScanner.class);
+        service.putExtra("autoConnect", true);
+        startService(service);
     }
 
-    public void offClicked(View view) {
-        Log.i("Fisken", "MainActivity.offClicked");
+    public void listClicked(View view) {
+        Log.i("Fisken", "MainActivity.listClicked");
+        Intent service = new Intent(this, TempLogScanner.class);
+        service.putExtra("autoConnect", false);
+        startService(service);
+    }
+
+    public void stopClicked(View view) {
+        Log.i("Fisken", "MainActivity.stopClicked");
+        //DropboxAppender.startLink((Activity)this, this, REQUEST_LINK_TO_DBX);
         stopService(new Intent(this, TempLogScanner.class));
     }
 
-    public void fiskClicked(View view) {
-        Log.i("Fisken", "MainActivity.fiskClicked");
-        //DropboxAppender.startLink((Activity)this, this, REQUEST_LINK_TO_DBX);
-    }
-
-    public void fjasClicked(View view) {
-        Log.i("Fisken", "MainActivity.fjasClicked");
-        AppConfig config = AppConfig.getInstance(this);
-        config.deviceConfig.clear();
+    public void clearClicked(View view) {
+        Log.i("Fisken", "MainActivity.clearClicked");
+        TempLogDeviceConfig.getInstance().clear();
         populateList();
     }
 

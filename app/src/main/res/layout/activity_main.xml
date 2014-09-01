@@ -14,37 +14,33 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:id="@+id/linearLayout">
-        <TextView
-            android:text="@string/hello_world"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
         <Button
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:onClick="offClicked"
-            android:text="Off"
-            android:id="@+id/offButton"
-            />
-        <Button
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:onClick="onClicked"
-            android:text="On"
-            android:id="@+id/onButton"
+            android:onClick="autoClicked"
+            android:text="auto"
+            android:id="@+id/autoButton"
             />
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="fiskClicked"
-            android:text="fisk"
-            android:id="@+id/fisk"
+            android:onClick="listClicked"
+            android:text="list"
+            android:id="@+id/listdButton"
+            />
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:onClick="stopClicked"
+            android:text="stop"
+            android:id="@+id/stopButton"
             />
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="fjasClicked"
-            android:text="fjas"
-            android:id="@+id/fjas"
+            android:onClick="clearClicked"
+            android:text="clear"
+            android:id="@+id/clearButton"
             />
     </LinearLayout>
 
