@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 public class TempLogDeviceConfig extends ArrayList<TempLogDeviceConfig.Device> {
     private ArrayList<DataSetChangedHandler> handlers;
+    private static TempLogDeviceConfig instance = null;
 
     public TempLogDeviceConfig() {
         handlers = new ArrayList<DataSetChangedHandler>();
@@ -19,6 +20,14 @@ public class TempLogDeviceConfig extends ArrayList<TempLogDeviceConfig.Device> {
             }
         }
         return null;
+    }
+
+    public static TempLogDeviceConfig getInstance() {
+        if (TempLogDeviceConfig.instance == null) {
+            TempLogDeviceConfig.instance = new TempLogDeviceConfig();
+        }
+
+        return instance;
     }
 
     public interface DataSetChangedHandler {

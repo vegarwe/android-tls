@@ -13,6 +13,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.util.Log;
@@ -26,6 +27,8 @@ public class TempLogScanner extends Service {
 
     private BluetoothLeScanner scanner;
     private boolean            keep_running;
+    private Handler            mHandler;
+    private boolean            autoConnect;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -37,6 +40,8 @@ public class TempLogScanner extends Service {
         super.onCreate();
         Log.i("Fisken", "TempLogScanner.onCreate");
 
+		mHandler = new Handler();
+
         keep_running = false;
         registerReceiver(bluetoothStatusChangeReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
     }
@@ -47,6 +52,7 @@ public class TempLogScanner extends Service {
 
         // TODO: Check if bluetooth is enabled! Return if not
 
+        autoConnect = intent.getBooleanExtra("autoConnect", false);
         keep_running = true;
         startScanner();
 
@@ -102,7 +108,7 @@ public class TempLogScanner extends Service {
         List<ScanFilter> filters = new ArrayList<ScanFilter>();
         ScanFilter.Builder filter_builder = new ScanFilter.Builder();
         filter_builder.setServiceUuid(new ParcelUuid(TLS_SERVI));
-        filter_builder.setMacAddress("E9:E9:70:24:E7:80");
+        filter_builder.setMacAddress("E3:D9:10:BF:11:9B");
         filter_builder.setServiceData(ByteUtils.hexStringToByteArray("FE1801"));
         filters.add(filter_builder.build());
 
@@ -136,22 +142,27 @@ public class TempLogScanner extends Service {
 
                 @Override
                 public void onAdvertisementUpdate(ScanResult result) {
-                    BluetoothDevice device = result.getDevice();
-                    Log.i("Fisken", "onAdvertisementUpdate " + result + " device: " + device);
+                    final TempLogDeviceConfig.Device device = TempLogDeviceConfig.Device.fromScanResult(result);
+                    Log.i("Fisken", "onAdvertisementUpdate "  + device.device);
 
-                    AppConfig config = AppConfig.getInstance(TempLogScanner.this);
-                    TempLogDeviceConfig.Device confDevice = config.deviceConfig.getDevice(device.getAddress());
-                    if (confDevice == null) {
-                        confDevice = TempLogDeviceConfig.Device.fromScanResult(result);
-                        config.deviceConfig.add(confDevice);
-                        Log.i("Fisken", "New device");
-                    }
+			        mHandler.post(new Runnable() {
+			        	@Override
+			        	public void run() {
+                            Log.i("Fisken", "TempLogScanner.mHandler");
+                            TempLogDeviceConfig deviceConfig = TempLogDeviceConfig.getInstance();
+                            if (deviceConfig.getDevice(device.device) == null) {
+                                deviceConfig.add(device);
+                                Log.i("Fisken", "New device");
+                            }
 
-                    if (true) { // TODO: Add service extra flag for this
-                        Intent service = new Intent(TempLogScanner.this, TempLogProfile.class);
-                        service.putExtra("device_addr", device.getAddress());
-                        TempLogScanner.this.startService(service);
-                    }
+                            if (autoConnect) {
+                                Intent service = new Intent(TempLogScanner.this, TempLogProfile.class);
+                                service.putExtra("device_addr", device.device);
+                                TempLogScanner.this.startService(service);
+                            }
+			        	}
+			        });
+                    Log.i("Fisken", "onAdvertisementUpdate ended");
                 }
 
                 @Override

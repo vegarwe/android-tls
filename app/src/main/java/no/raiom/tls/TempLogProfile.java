@@ -120,7 +120,7 @@ public class TempLogProfile extends Service {
             return;
         }
 
-        AppConfig app = AppConfig.getInstance(this);
+        AppConfig app = AppConfig.getInstance();
         String filename = ByteUtils.bytesToHex(random).toLowerCase() + ".csv";
         String device_name = gatt.getDevice().getName();
         if (device_name != null) {
@@ -149,7 +149,8 @@ public class TempLogProfile extends Service {
                     stopSelf();
                 } else {
                     Log.i("Fisken", "Connected " + gatt);
-                    gatt.discoverServices();
+                    gatt.disconnect();
+                    //gatt.discoverServices();
                 }
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 if (status == 0x13) {
@@ -161,7 +162,7 @@ public class TempLogProfile extends Service {
                 }
 
                 gatt.close();
-                writeSamples(gatt);
+                //writeSamples(gatt);
                 stopSelf();
             }
 
@@ -232,6 +233,7 @@ public class TempLogProfile extends Service {
             if (TLS_VALUE.equals(characteristic.getUuid())) {
                 Log.d("Fisken", "onCharacteristicChanged: notification: todo");
                 decode_samples(characteristic.getValue());
+                Log.d("Fisken", "onCharacteristicChanged done: notification: todo");
             }
         }
     };
